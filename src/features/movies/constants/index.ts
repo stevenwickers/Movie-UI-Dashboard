@@ -1,0 +1,2 @@
+
+export const GRAPHQL = 'graphql'
