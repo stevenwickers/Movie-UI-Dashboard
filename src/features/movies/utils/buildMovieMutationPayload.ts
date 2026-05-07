@@ -6,25 +6,29 @@ import type {
 import { toNumberOrNull } from '@/lib/number-utils.ts'
 
 export type MoviePayloadFormValues = {
-  movieName: string
-  releaseDate: string
-  worldwideGross: string
-  productionBudget: string
-  domesticGross: string
-  movieLink: string
-  genres: string[]
+  movieName?: string
+  releaseDate?: string
+  worldwideGross?: string
+  productionBudget?: string
+  domesticGross?: string
+  movieLink?: string
+  genres?: string[]
+}
+
+function normalizeText(value: string | undefined): string {
+  return value?.trim() ?? ''
 }
 
 function buildBaseMoviePayload(
   values: MoviePayloadFormValues,
 ): MovieUpsertRequest {
   return {
-    movieName: values.movieName.trim(),
-    releaseDate: values.releaseDate.trim() || null,
+    movieName: normalizeText(values.movieName),
+    releaseDate: normalizeText(values.releaseDate) || null,
     worldwideGross: toNumberOrNull(values.worldwideGross),
     productionBudget: toNumberOrNull(values.productionBudget),
     domesticGross: toNumberOrNull(values.domesticGross),
-    movieLink: values.movieLink.trim() || null,
+    movieLink: normalizeText(values.movieLink) || null,
     genres: values.genres ?? [],
   }
 }

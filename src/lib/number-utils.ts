@@ -1,5 +1,5 @@
-export function toNumberOrNull(value: string): number | null {
-  const trimmed = value.trim()
+export function toNumberOrNull(value: string | undefined): number | null {
+  const trimmed = value?.trim() ?? ''
   if (!trimmed) return null
 
   const parsed = Number(trimmed)

@@ -1,7 +1,4 @@
 import {
-  cloneElement,
-  isValidElement,
-  type ReactElement,
   type ReactNode,
   useState,
 } from 'react'
@@ -19,7 +16,6 @@ import { useDeleteMovie } from '@/features/movies/hooks/useUpsertMovie.ts'
 import { Trash } from 'lucide-react'
 import { useSelector } from 'react-redux'
 import { selectCurrentApiMode } from '@/store/selectors.ts'
-import { GRAPHQL } from '@/features/movies/constants'
 
 type DeleteDialogProps = {
   movie?: MovieResponse;
@@ -40,20 +36,7 @@ export function DeleteDialog({
 
   const movieName = movie?.movieName ?? 'this movie'
   const isDeleting = deleteMovieMutation.isPending
-  const isGraphQlMode = apiMode === GRAPHQL
   const submitError = (deleteMovieMutation.error as Error | null)?.message ?? null
-  const resolvedTrigger =
-    trigger && isValidElement<{ disabled?: boolean; title?: string }>(trigger)
-      ? cloneElement(
-          trigger as ReactElement<{ disabled?: boolean; title?: string }>,
-          {
-          disabled: isGraphQlMode,
-          title: isGraphQlMode
-            ? 'Delete is currently available only in REST mode.'
-            : trigger.props.title,
-          }
-        )
-      : trigger
 
   const handleDelete = async () => {
     if (!movie?.id) {
@@ -68,16 +51,10 @@ export function DeleteDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {resolvedTrigger ?? (
+        {trigger ?? (
           <Button
             size="sm"
             variant="outline"
-            disabled={isGraphQlMode}
-            title={
-              isGraphQlMode
-                ? 'Delete is currently available only in REST mode.'
-                : undefined
-            }
           >
             {triggerLabel ?? 'Delete'}
           </Button>
@@ -110,12 +87,6 @@ export function DeleteDialog({
             </p>
           </div>
 
-          {isGraphQlMode ? (
-            <div className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
-              Delete is currently available only in REST mode.
-            </div>
-          ) : null}
-
           {submitError ? (
             <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
               {submitError}
@@ -138,7 +109,7 @@ export function DeleteDialog({
             variant="destructive"
             size="sm"
             onClick={handleDelete}
-            disabled={isDeleting || isGraphQlMode || !movie?.id}
+            disabled={isDeleting || !movie?.id}
           >
             {isDeleting ? 'Deleting...' : 'Delete movie'}
           </Button>

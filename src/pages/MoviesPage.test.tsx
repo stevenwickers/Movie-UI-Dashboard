@@ -78,6 +78,17 @@ vi.mock('@/components', () => ({
 }))
 
 vi.mock('@/components/ui', () => ({
+  Button: ({
+    children,
+    onClick,
+  }: {
+    children: ReactNode;
+    onClick?: () => void;
+  }) => (
+    <button type="button" onClick={onClick}>
+      {children}
+    </button>
+  ),
   Switch: ({
     checked,
     onCheckedChange,
@@ -99,7 +110,13 @@ vi.mock('@/components/ui', () => ({
 }))
 
 vi.mock('@/features/movies/components', () => ({
-  MovieUpsertDialog: ({ mode }: { mode: 'create' | 'edit' }) => (
+  MovieUpsertDialog: ({
+    mode,
+    trigger,
+  }: {
+    mode: 'create' | 'edit';
+    trigger?: ReactNode;
+  }) => trigger ?? (
     <button type="button">{mode === 'create' ? 'Add Movie' : 'Edit Movie'}</button>
   ),
   MovieListings: (props: {
@@ -299,5 +316,25 @@ describe('MoviesPage', () => {
     await user.click(screen.getByRole('button', { name: 'Toggle API mode' }))
 
     expect(mockDispatch).toHaveBeenCalledTimes(2)
+  })
+
+  it('switches back to REST mode when opening the add movie dialog', async () => {
+    const user = userEvent.setup()
+
+    mockUseSelector.mockImplementation((selector) =>
+      selector({
+        apiMode: { mode: 'graphql' },
+        graphqlColumns: { selectedFields: movieGraphQlFields },
+      })
+    )
+
+    render(<MoviesPage />)
+
+    await user.click(screen.getByRole('button', { name: 'Add movie' }))
+
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'apiMode/setApiMode',
+      payload: 'rest',
+    })
   })
 })

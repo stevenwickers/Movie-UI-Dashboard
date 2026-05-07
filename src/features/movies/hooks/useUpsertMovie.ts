@@ -10,6 +10,7 @@ import type {
 } from '@/features/movies/types/movie-types.ts'
 import {
   createGraphQlMovie,
+  deleteGraphQlMovie,
   updateGraphQlMovie,
 } from '@/features/movies/api/movie-graphql-api.ts'
 import { GRAPHQL } from '@/features/movies/constants'
@@ -17,9 +18,9 @@ import { GRAPHQL } from '@/features/movies/constants'
 export function useCreateMovie(apiMode: string = 'rest') {
   const queryClient = useQueryClient()
 
+  //REST ONLY
   return useMutation({
-    mutationFn: (input: MovieUpsertRequest) =>
-      apiMode === GRAPHQL ? createGraphQlMovie(input) : createMovie(input),
+    mutationFn: (input: MovieUpsertRequest) =>  createMovie(input),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['movies'] })
     },
@@ -43,16 +44,9 @@ export function useUpdateMovie(apiMode: string = 'rest') {
 export function useDeleteMovie(apiMode: string = 'rest') {
   const queryClient = useQueryClient()
 
+  //REST ONLY
   return useMutation({
-    mutationFn: async ({ id }: { id: string }) => {
-      if (apiMode === GRAPHQL) {
-        throw new Error(
-          'Deleting movies is currently available only in REST mode.',
-        )
-      }
-
-      return deleteMovie(id)
-    },
+    mutationFn: ({ id }: { id: string }) => deleteMovie(id),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['movies'] })
     },

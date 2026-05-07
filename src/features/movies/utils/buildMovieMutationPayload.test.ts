@@ -55,4 +55,25 @@ describe('buildMovieMutationPayload', () => {
       genres: ['Sci-Fi', 'Drama'],
     })
   })
+
+  it('handles optional form values that are not registered in the dialog', () => {
+    expect(
+      buildMovieCreatePayload({
+        movieName: 'Arrival',
+        releaseDate: '2016-11-11',
+        worldwideGross: '0',
+        productionBudget: '0',
+        domesticGross: '0',
+        genres: ['Drama'],
+      }),
+    ).toEqual({
+      movieName: 'Arrival',
+      releaseDate: '2016-11-11',
+      worldwideGross: 0,
+      productionBudget: 0,
+      domesticGross: 0,
+      movieLink: null,
+      genres: ['Drama'],
+    })
+  })
 })

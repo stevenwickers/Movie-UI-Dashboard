@@ -19,6 +19,10 @@ type UpdateMovieMutationResult = {
   updateMovie: MovieResponse
 }
 
+type DeleteMovieMutationResult = {
+  deleteMovie: MovieResponse
+}
+
 type MoviesQueryResult = {
   movies: {
     items: GraphqlMovieNode[]
@@ -41,11 +45,11 @@ type GraphQlMoviePatchRequest = {
 const GRAPHQL_ENDPOINT = '/graphql'
 
 function getGraphQlUrl() {
-  const baseUrl = getApiBaseUrl()?.trim()
+  const baseUrl = getApiBaseUrl()
 
   if (!baseUrl) {
     throw new Error(
-      'Missing API base URL. Check VITE_CSHARP_API_URL / VITE_NODE_API_URL and reload Vite.',
+      'Missing API base URL. Check VITE_API_URL and reload Vite.',
     )
   }
 
@@ -106,7 +110,6 @@ export async function getGraphQlMovies(
   const columns = `
     id movieName ${requestedFields.join(' ')}
   `
-
   const query = `
     query movies($filters: MovieFiltersInput) {
       movies(filters: $filters) {
@@ -168,7 +171,7 @@ export async function updateGraphQlMovie(
       }
     }
   `
-
+  
   const data = await request<UpdateMovieMutationResult>(
     getGraphQlUrl(),
     mutation,
@@ -176,4 +179,30 @@ export async function updateGraphQlMovie(
   )
 
   return data.updateMovie
+}
+
+export async function deleteGraphQlMovie(id: string): Promise<MovieResponse> {
+  const mutation = `
+    mutation DeleteMovie($id: UUID!) {
+      deleteMovie(id: $id) {
+        id
+        movieName
+        releaseDate
+        worldwideGross
+        productionBudget
+        domesticGross
+        genres
+        createdAt
+        updatedAt
+      }
+    }
+  `
+
+  const data = await request<DeleteMovieMutationResult>(
+    getGraphQlUrl(),
+    mutation,
+    { id },
+  )
+
+  return data.deleteMovie
 }

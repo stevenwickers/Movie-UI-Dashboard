@@ -30,7 +30,6 @@ import {
   useCreateMovie,
   useUpdateMovie,
 } from '@/features/movies/hooks/useUpsertMovie.ts'
-import { isValidNonNegativeNumber } from '@/lib/number-utils.ts'
 import { toDateOnlyString, toStringOrEmpty } from '@/lib/string-utils.ts'
 import { useSelector } from 'react-redux'
 import {
@@ -64,12 +63,14 @@ type MovieFormValues = {
 }
 
 function mapMovieToFormValues(movie?: MovieResponse): MovieFormValues {
+  const defaultRevenue = movie ? '' : '0'
+
   return {
     movieName: movie?.movieName ?? '',
     releaseDate: toDateOnlyString(movie?.releaseDate),
-    worldwideGross: toStringOrEmpty(movie?.worldwideGross),
-    productionBudget: toStringOrEmpty(movie?.productionBudget),
-    domesticGross: toStringOrEmpty(movie?.domesticGross),
+    worldwideGross: toStringOrEmpty(movie?.worldwideGross) || defaultRevenue,
+    productionBudget: toStringOrEmpty(movie?.productionBudget) || defaultRevenue,
+    domesticGross: toStringOrEmpty(movie?.domesticGross) || defaultRevenue,
     movieLink: toStringOrEmpty(movie?.movieLink),
     genres: movie?.genres ?? [],
   }
@@ -84,6 +85,16 @@ function isValidUrl(value: string): boolean {
   } catch {
     return false
   }
+}
+
+function isValidPositiveNumericValue(value: string): boolean {
+  const trimmed = value.trim()
+
+  if (!trimmed) return false
+  if (!/^\d+(\.\d+)?$/.test(trimmed)) return false
+
+  const parsed = Number(trimmed)
+  return Number.isFinite(parsed) && parsed >= 0
 }
 
 export function MovieUpsertDialog({
@@ -112,6 +123,8 @@ export function MovieUpsertDialog({
     register,
     handleSubmit,
     setValue,
+    setError,
+    clearErrors,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<MovieFormValues>({
@@ -190,7 +203,13 @@ export function MovieUpsertDialog({
       ? [...new Set([...selectedGenres, result.value])]
       : selectedGenres.filter((genre) => genre !== result.value)
 
-    setValue('genres', nextGenres, { shouldDirty: true })
+    setValue('genres', nextGenres, {
+      shouldDirty: true,
+    })
+
+    if (nextGenres.length > 0) {
+      clearErrors('genres')
+    }
   }
 
   const handleReset = () => {
@@ -198,6 +217,14 @@ export function MovieUpsertDialog({
   }
 
   const handleFormSubmit = async (values: MovieFormValues) => {
+    if (showGenresField && (values.genres ?? []).length === 0) {
+      setError('genres', {
+        type: 'required',
+        message: 'Select at least one genre',
+      })
+      return
+    }
+
     if (mode === 'create') {
       await createMovieMutation.mutateAsync(buildMovieCreatePayload(values))
     } else {
@@ -273,7 +300,13 @@ export function MovieUpsertDialog({
                       <Field>
                         <FieldLabel>Release date</FieldLabel>
                         <FieldContent>
-                          <Input type="date" {...register('releaseDate')} />
+                          <Input
+                            type="date"
+                            {...register('releaseDate', {
+                              required: 'Release date is required',
+                            })}
+                            aria-invalid={!!errors.releaseDate}
+                          />
                           <FieldError errors={[errors.releaseDate]} />
                         </FieldContent>
                       </Field>
@@ -287,8 +320,8 @@ export function MovieUpsertDialog({
                             inputMode="numeric"
                             {...register('worldwideGross', {
                               validate: (value) =>
-                                isValidNonNegativeNumber(value) ||
-                                'Enter a valid non-negative number',
+                                isValidPositiveNumericValue(value) ||
+                                'Enter zero or a positive numeric value',
                             })}
                             placeholder="e.g. 463517383"
                             aria-invalid={!!errors.worldwideGross}
@@ -306,8 +339,8 @@ export function MovieUpsertDialog({
                             inputMode="numeric"
                             {...register('productionBudget', {
                               validate: (value) =>
-                                isValidNonNegativeNumber(value) ||
-                                'Enter a valid non-negative number',
+                                isValidPositiveNumericValue(value) ||
+                                'Enter zero or a positive numeric value',
                             })}
                             placeholder="e.g. 63000000"
                             aria-invalid={!!errors.productionBudget}
@@ -325,8 +358,8 @@ export function MovieUpsertDialog({
                             inputMode="numeric"
                             {...register('domesticGross', {
                               validate: (value) =>
-                                isValidNonNegativeNumber(value) ||
-                                'Enter a valid non-negative number',
+                                isValidPositiveNumericValue(value) ||
+                                'Enter zero or a positive numeric value',
                             })}
                             placeholder="e.g. 171479930"
                             aria-invalid={!!errors.domesticGross}
@@ -355,6 +388,7 @@ export function MovieUpsertDialog({
                               optionsClassName="grid grid-cols-2 gap-2"
                             />
                           )}
+                          <FieldError errors={[errors.genres]} />
                         </FieldContent>
                       </Field>
                     ) : null}

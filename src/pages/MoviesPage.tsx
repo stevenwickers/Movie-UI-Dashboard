@@ -15,7 +15,7 @@ import {
   SearchInput,
   SelectionDropdown,
 } from '@/components'
-import { Switch, Separator, FieldLabel } from '@/components/ui'
+import { Button, Switch, Separator, FieldLabel } from '@/components/ui'
 import { setApiMode } from '@/features/apiMode/apiModeSlice.ts'
 import { setSelectedGraphQlFields } from '@/features/graphql/graphqlColumnsSlice.ts'
 import { useGenres } from '@/features/genres/hooks/useGenres.ts'
@@ -204,6 +204,12 @@ export function MoviesPage() {
     dispatch(setApiMode(checked ? 'graphql' : 'rest'))
   }
 
+  const handleAddMovieClick = () => {
+    if (apiModeValue !== 'rest') {
+      dispatch(setApiMode('rest'))
+    }
+  }
+
   useEffect(() => {
     if (
       apiModeValue === 'graphql' &&
@@ -278,7 +284,14 @@ export function MoviesPage() {
             isPlaceholderData={isPlaceholderData}
             dataUpdatedAt={dataUpdatedAt}
           />
-          <MovieUpsertDialog mode="create" />
+          <MovieUpsertDialog
+            mode="create"
+            trigger={(
+              <Button type="button" size="sm" onClick={handleAddMovieClick}>
+                Add movie
+              </Button>
+            )}
+          />
         </div>
       </div>
 

@@ -216,8 +216,21 @@ export function MovieListings({
                       </p>
                     ) : null}
                   </div>
-                  <div className="shrink-0">
+                  <div className="flex shrink-0 items-center gap-2">
                     <MovieUpsertDialog mode="edit" movie={movie} />
+                    <DeleteDialog
+                      movie={movie}
+                      trigger={(
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Delete ${movie.movieName}`}
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      )}
+                    />
                   </div>
                 </div>
 

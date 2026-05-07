@@ -73,7 +73,7 @@ describe('MovieListings', () => {
     expect(screen.getAllByText('Sci-Fi')[0]).toBeInTheDocument()
     expect(screen.getByText('+1')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Edit Arrival' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Delete Arrival' })).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Delete Arrival' })).not.toHaveLength(0)
   })
 
   it('calls the sort callback when a sortable header is clicked', async () => {
